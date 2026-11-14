@@ -1,0 +1,15 @@
+{
+  "name": "配電大師",
+  "short_name": "配電大師",
+  "description": "居家水電修繕與配線互動模擬器",
+  "lang": "zh-TW",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#0b2530",
+  "theme_color": "#0b2530",
+  "icons": [
+    { "src": "./icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
