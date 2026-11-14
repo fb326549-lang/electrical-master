@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#102b3b">
+<title>配電大師</title>
+<style>
+:root{--navy:#102b3b;--teal:#28b8a5;--bg:#edf2f4;--ink:#1c2d38;--muted:#71818c;--line:#dce5e9}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
+button{font:inherit;cursor:pointer;border:0}.app{min-height:100vh;display:flex;flex-direction:column}
+.top{background:linear-gradient(110deg,#102b3b,#194b5d);color:#fff;padding:15px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;box-shadow:0 5px 18px #102b3b20}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:42px;height:42px;border-radius:13px;background:#f4c65e;color:#17384a;display:grid;place-items:center;font-size:24px;font-weight:900}.brand h1{font-size:21px;margin:0;letter-spacing:1px}.brand small{display:block;color:#b8d1db;font-size:10px;letter-spacing:2px;margin-top:3px}
+.topright{display:flex;align-items:center;gap:10px;font-size:12px;color:#d8e7ed}.pill{border:1px solid #ffffff35;border-radius:99px;padding:7px 11px}
+main{width:min(1440px,100%);margin:auto;padding:18px;display:grid;grid-template-columns:225px minmax(360px,1fr) 265px;gap:15px;flex:1}
+.panel{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 5px 18px #203d4b08;overflow:hidden}
+.panelhead{padding:14px 15px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.panelhead h2{font-size:14px;margin:0}.panelbody{padding:13px}.eyebrow{font-size:10px;color:var(--muted);letter-spacing:1.5px;font-weight:800}
+.lesson{display:flex;gap:9px;align-items:flex-start;padding:10px;border-radius:11px;margin-bottom:6px;border:1px solid transparent;background:#f7f9fa;text-align:left;width:100%;color:var(--ink)}
+.lesson.active{background:#e8f7f4;border-color:#a6ddd2}.num{width:26px;height:26px;flex:none;border-radius:8px;background:#e3eaee;display:grid;place-items:center;font-size:10px;font-weight:800;color:#45606e}.lesson.active .num{background:var(--teal);color:white}.lesson b{display:block;font-size:11px}.lesson small{display:block;color:var(--muted);font-size:9px;margin-top:4px;line-height:1.4}
+.stage{min-height:650px;display:flex;flex-direction:column}.stagehead{padding:14px 17px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);gap:10px}.stagehead h2{margin:3px 0 0;font-size:17px}.stage-actions{display:flex;gap:7px}.softbtn{background:#edf3f5;color:#355565;border-radius:9px;padding:8px 10px;font-size:11px}
+.scene{position:relative;flex:1;min-height:470px;background:radial-gradient(ellipse at 50% 42%,#e5eff0,#b8cbd0 76%,#9db5bc);overflow:hidden}
+#threeCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}#threeCanvas:active{cursor:grabbing}
+.scene-label{position:absolute;top:14px;left:16px;font-size:10px;letter-spacing:1.5px;color:#49636e;font-weight:800;pointer-events:none}
+.scene-help{position:absolute;right:13px;top:12px;background:#ffffffd9;border:1px solid #ffffffa8;border-radius:9px;padding:7px 9px;color:#4c6570;font-size:9px;pointer-events:none}
+.scene-bottom{position:absolute;left:14px;bottom:12px;background:#ffffffd9;border:1px solid #ffffffa8;border-radius:9px;padding:7px 9px;color:#4c6570;font-size:9px;pointer-events:none}
+.statusbar{background:#f8fafb;border-top:1px solid var(--line);padding:11px 15px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.status{font-size:11px;color:var(--muted)}.status strong{color:#355565}.actionbtn{background:var(--teal);color:#fff;border-radius:10px;padding:10px 14px;font-weight:700;font-size:12px}.actionbtn.dark{background:var(--navy)}
+.rightcol{display:flex;flex-direction:column;gap:13px}.specrow{display:flex;justify-content:space-between;gap:8px;font-size:11px;padding:8px 0;border-bottom:1px solid #edf1f3}.specrow span{color:var(--muted)}.specrow b{text-align:right}
+.materials{display:grid;grid-template-columns:1fr 1fr;gap:7px}.material{border:1px solid var(--line);border-radius:9px;padding:9px;background:#fff;text-align:left;font-size:10px;color:#405966}.material.active{border-color:var(--teal);background:#eaf8f5}.swatch{height:6px;border-radius:4px;margin-bottom:7px}
+.choice{padding:8px 9px;border:1px solid var(--line);border-radius:9px;background:#fff;color:#405966;font-size:10px;text-align:left}.choice.active{border-color:var(--teal);background:#eaf8f5;color:#137f70;font-weight:700}
+.notice{background:#fff7e6;border:1px solid #f1d79d;color:#795b1c;border-radius:10px;padding:10px;font-size:10px;line-height:1.55}
+.bottomnote{text-align:center;color:#7a8a92;font-size:10px;padding:0 15px 14px}
+.electrical-readout{margin-top:13px;padding:11px;border-radius:11px;background:#f4f8f9;border:1px solid #e0eaed}.readout-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:9px}.readout-grid div{background:#fff;border:1px solid #e5edef;border-radius:8px;padding:8px}.readout-grid span{display:block;font-size:9px;color:#71818c}.readout-grid b{display:block;font-size:14px;color:#234756;margin-top:3px;font-variant-numeric:tabular-nums}.readout-foot{font-size:9px;color:#71818c;margin-top:9px;line-height:1.45}
+@media(max-width:1050px){main{grid-template-columns:205px minmax(300px,1fr)}.rightcol{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr}.stage{min-height:620px}}
+@media(max-width:700px){.top{padding:11px 13px}.topright .pill:first-child{display:none}main{display:flex;flex-direction:column;padding:9px;gap:9px}.stage{order:1;min-height:560px}.leftcol{order:2}.rightcol{order:3;display:grid;grid-template-columns:1fr 1fr}.rightcol .panel:first-child{grid-column:1/-1}.scene{min-height:410px}.stagehead{padding:11px}.stagehead h2{font-size:14px}.softbtn{padding:7px;font-size:10px}}
+</style>
+
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#0b2530">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="配電大師">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+</head>
+<body>
+<div class="app">
+<header class="top">
+ <div class="brand"><div class="logo">⚡</div><div><h1>配電大師</h1><small>ELECTRICAL MASTER · INTERACTIVE LAB</small></div></div>
+ <div class="topright"><span class="pill">台灣住宅電力教學模式</span><span class="pill">3D 互動工作台</span></div>
+</header>
+<main>
+<aside class="panel leftcol">
+ <div class="panelhead"><h2>練習題目</h2><span class="eyebrow">8 LESSONS</span></div>
+ <div class="panelbody">
+  <div class="eyebrow" style="margin:2px 0 9px">基礎配電與開關</div>
+  <button class="lesson active" data-title="單切開關控制一盞燈" data-sub="透過互動連接理解開關如何控制燈具。"><span class="num">01</span><span><b>單切開關</b><small>一個開關控制一盞燈</small></span></button>
+  <button class="lesson" data-title="雙切開關控制一盞燈" data-sub="理解兩個位置控制同一盞燈的電路概念。"><span class="num">02</span><span><b>雙切開關</b><small>兩處控制同一盞燈</small></span></button>
+  <button class="lesson" data-title="多盞燈具控制" data-sub="查看多個負載與控制元件的關係。"><span class="num">03</span><span><b>多盞燈具控制</b><small>分組控制概念</small></span></button>
+  <div class="eyebrow" style="margin:14px 0 9px">插座與電器</div>
+  <button class="lesson" data-title="110V 插座電路" data-sub="認識插座的供電、接地與負載概念。"><span class="num">04</span><span><b>110V 插座</b><small>插座與負載</small></span></button>
+  <button class="lesson" data-title="220V 電源原理" data-sub="以示意模型理解單相三線式供電。"><span class="num">05</span><span><b>220V 電源原理</b><small>雙火線供電概念</small></span></button>
+  <button class="lesson" data-title="熱水器專用迴路" data-sub="認識專用迴路、設備負載與保護概念。"><span class="num">06</span><span><b>熱水器專用迴路</b><small>220V 設備情境</small></span></button>
+  <button class="lesson" data-title="定時器與接觸器概念" data-sub="了解定時控制與負載控制的分工。"><span class="num">07</span><span><b>定時器與接觸器</b><small>定時控制概念</small></span></button>
+  <div class="eyebrow" style="margin:14px 0 9px">故障理解</div>
+  <button class="lesson" data-title="找出電路故障" data-sub="辨識斷路、短路及過載的模擬現象。"><span class="num">08</span><span><b>故障排除</b><small>斷路、短路、過載</small></span></button>
+ </div>
+</aside>
+<section class="panel stage">
+ <div class="stagehead">
+  <div><div class="eyebrow">3D INTERACTIVE WORKBENCH</div><h2 id="lessonTitle">單切開關控制一盞燈</h2></div>
+  <div class="stage-actions"><button class="softbtn" id="switchToggle">開關 A：OFF</button><button class="softbtn" id="switchToggle2" style="display:none">開關 B：OFF</button><button class="softbtn" id="socketLoadToggle" style="display:none">插入負載：OFF</button><button class="softbtn" id="heaterToggle" style="display:none">熱水器：OFF</button><button class="softbtn" id="timerToggle" style="display:none">定時器輸出：OFF</button><button class="softbtn" id="faultDraw" style="display:none">抽取故障情境</button><button class="softbtn" id="resetView">⟲ 重設視角</button><button class="softbtn" id="resetScene">↺ 重設</button></div>
+ </div>
+ <div class="scene" id="scene">
+  <canvas id="threeCanvas"></canvas>
+  <div class="scene-label">3D WORKBENCH / 配電練習區</div>
+  <div class="scene-help">拖曳旋轉　・　滾輪縮放　・　點擊端子</div>
+  <div class="scene-bottom" id="sceneHint">選擇材料，再依序點擊兩個端子</div>
+ </div>
+ <div class="statusbar">
+  <div class="status" id="statusText"><strong>待操作</strong>　選擇右側材料，再點擊兩個端子。</div>
+  <div style="display:flex;gap:7px"><button class="actionbtn dark" id="powerBtn">⏻ 模擬送電</button><button class="actionbtn" id="checkBtn">檢查連接</button></div>
+ </div>
+</section>
+<aside class="rightcol">
+ <section class="panel">
+  <div class="panelhead"><h2>元件資訊</h2><span class="eyebrow">INSPECT</span></div>
+  <div class="panelbody">
+   <div class="specrow"><span>目前練習</span><b id="specLesson">單切開關</b></div>
+   <div class="specrow"><span>供電模型</span><b>單相三線式</b></div>
+   <div class="specrow"><span>教學電壓</span><b>110V / 220V</b></div>
+   <div class="specrow"><span>端子選取</span><b id="terminalCount">0 / 2</b></div>
+   <p style="font-size:10px;color:#71818c;line-height:1.55;margin:11px 0 0" id="lessonDesc">透過互動連接理解開關如何控制燈具。</p>
+  </div>
+ </section>
+ <section class="panel">
+  <div class="panelhead"><h2>選擇線材</h2><span class="eyebrow">MATERIAL</span></div>
+  <div class="panelbody">
+   <div class="materials">
+    <button class="material active" data-wire="紅色導線 · 2.0 mm²" data-color="#d64f45"><div class="swatch" style="background:#d64f45"></div><b>紅色導線</b><br>2.0 mm²</button>
+    <button class="material" data-wire="白色導線 · 2.0 mm²" data-color="#f7f7f2"><div class="swatch" style="background:#f7f7f2;border:1px solid #cbd5d9"></div><b>白色導線</b><br>2.0 mm²</button>
+    <button class="material" data-wire="綠色導線 · 2.0 mm²" data-color="#299b70"><div class="swatch" style="background:#299b70"></div><b>綠色導線</b><br>2.0 mm²</button>
+    <button class="material" data-wire="紅色導線 · 3.5 mm²" data-color="#d64f45"><div class="swatch" style="background:#d64f45;height:8px"></div><b>紅色導線</b><br>3.5 mm²</button>
+   </div>
+   <div style="font-size:9px;color:#819099;line-height:1.5;margin-top:9px">數值為教學假設：110V、60W 燈具；不代表實際設備規格或現場選材依據。</div>
+  </div>
+ </section>
+ <section class="panel">
+  <div class="panelhead"><h2>操作提示</h2><span class="eyebrow">GUIDE</span></div>
+  <div class="panelbody">
+   <div class="notice" id="guide">第一課：完成三條連線——總開關 L 輸出→單切開關 COM、單切開關 L1→燈具 L、總開關 N 輸出→燈具 N。接好後按「檢查連接」，再啟動模擬電源並切換開關。</div>
+   <div style="display:flex;gap:7px;margin-top:10px"><button class="choice active" id="wireMode">接線模式</button><button class="choice" id="inspectMode">查看模式</button></div>
+   <div class="electrical-readout">
+    <div class="eyebrow">模擬電氣狀態</div>
+    <div class="readout-grid">
+     <div><span>電壓</span><b id="readVoltage">0 V</b></div>
+     <div><span>電流</span><b id="readCurrent">0 A</b></div>
+     <div><span>功率</span><b id="readPower">0 W</b></div>
+     <div><span>燈具</span><b id="readLamp">熄滅</b></div>
+    </div>
+    <div class="readout-foot" id="readoutMessage">尚未完成迴路檢查</div>
+   </div>
+   <div id="faultLab" style="display:none;margin-top:12px;padding:12px;border:1px solid #d7e1e3;border-radius:10px;background:#f5f8f7">
+    <div class="eyebrow">FAULT DIAGNOSIS / 故障診斷</div>
+    <div id="faultSymptom" style="font-size:12px;line-height:1.65;color:#435963;margin:8px 0">先抽取故障情境，再完成接線、模擬送電並觀察現象。</div>
+    <label for="faultDiagnosis" style="display:block;font-size:11px;color:#637780;margin:8px 0 5px">你的診斷判斷</label>
+    <select id="faultDiagnosis" style="width:100%;padding:9px;border:1px solid #cbd7d9;border-radius:7px;background:white;color:#29434d">
+     <option value="">請選擇故障原因</option><option value="open">斷路（迴路中斷）</option><option value="short">短路（異常低阻抗）</option><option value="overload">過載（負載電流過大）</option>
+    </select>
+    <button class="actionbtn" id="diagnoseBtn" style="width:100%;margin-top:8px">提交診斷</button>
+    <div id="diagnosisResult" style="font-size:11px;line-height:1.6;margin-top:8px;color:#526871">診斷結果會顯示在這裡。</div>
+   </div>
+  </div>
+ </section>
+</aside>
+</main>
+<div class="bottomnote">配電大師｜互動教學模擬。電路狀態僅供原理學習，不可作為實際市電施工或接線依據。</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(() => {
+const canvas=document.getElementById('threeCanvas'),sceneEl=document.getElementById('scene');
+if(!window.THREE){document.getElementById('guide').textContent='3D 引擎載入失敗。請確認網路連線後重新整理。';return;}
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xc4d6d9);
+const camera=new THREE.PerspectiveCamera(38,1,.1,100);camera.position.set(7,6.2,9);
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+scene.add(new THREE.HemisphereLight(0xffffff,0x607985,1.25));
+const key=new THREE.DirectionalLight(0xffffff,1.6);key.position.set(4,9,6);key.castShadow=true;scene.add(key);
+const fill=new THREE.DirectionalLight(0x9bd8df,.65);fill.position.set(-6,4,-4);scene.add(fill);
+const mat=(color,rough=.7,metal=0)=>new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal});
+const wood=mat(0x9b7554),dark=mat(0x243d49),panelMat=mat(0xe6ece9),breakerMat=mat(0xd7dfdc),terminalMat=mat(0xc1cbd0,.35,.55),redMat=mat(0xd64f45,.4),whiteMat=mat(0xfafaf4,.4),greenMat=mat(0x299b70,.4),blackMat=mat(0x273943);
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(200,200),mat(0xaebfc2));floor.rotation.x=-Math.PI/2;floor.position.y=-.12;floor.receiveShadow=true;scene.add(floor);
+const grid=new THREE.GridHelper(18,36,0x8fa8ad,0xa8bdc1);grid.position.y=-.105;scene.add(grid);
+const bench=new THREE.Group();scene.add(bench);
+function box(parent,w,h,d,material,x,y,z,edge=false){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);if(edge){const e=new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry),new THREE.LineBasicMaterial({color:0x6c8188,transparent:true,opacity:.4}));e.position.copy(m.position);parent.add(e);}return m;}
+box(bench,8,.32,4,wood,0,.05,0);
+for(const x of [-3.4,3.4])for(const z of [-1.5,1.5])box(bench,.22,1.45,.22,dark,x,-.83,z);
+box(bench,6.7,.08,3.1,dark,0,.26,0);
+const board=new THREE.Group();bench.add(board);board.position.set(0,.34,0);
+box(board,6.4,.16,2.8,panelMat,0,.08,0,true);
+const terminalObjects=[],wireLines=[];
+function addDevice(x,z,label,type){
+ const g=new THREE.Group();board.add(g);g.position.set(x,.18,z);
+ box(g,1.55,.18,1.65,mat(0xf8faf8),0,.12,0,true);
+ // small printed name strip
+ box(g,.92,.025,.18,mat(0x365767),0,.225,-.62);
+ if(type==='breaker'){
+  box(g,.78,.72,.78,breakerMat,0,.62,0,true);
+  box(g,.34,.48,.18,blackMat,0,.66,.49);
+  box(g,.22,.22,.08,mat(0x71858c),0,.68,.60);
+ }else if(type==='switch'){
+  box(g,.7,.78,.65,mat(0xf1f3f1),0,.62,0,true);
+  const lever=box(g,.16,.48,.16,mat(0x637e88),0,.67,.36);lever.rotation.z=-.22;g.userData.lever=lever;
+ }else if(type==='outlet'){
+  box(g,.92,.72,.16,mat(0xf4f5f2),0,.62,.38,true);
+  const socketDark=mat(0x263b43);
+  for(const x of [-.2,.2]){const hole=new THREE.Mesh(new THREE.BoxGeometry(.075,.22,.035),socketDark);hole.position.set(x,.63,.48);g.add(hole);}
+  const earthHole=new THREE.Mesh(new THREE.CircleGeometry(.075,20),socketDark);earthHole.position.set(0,.48,.485);g.add(earthHole);
+ }else if(type==='ground'){
+  box(g,.82,.48,.62,mat(0xdce6e4),0,.55,0,true);
+  box(g,.36,.035,.035,mat(0x299b70),0,.84,.34);
+  box(g,.24,.035,.035,mat(0x299b70),0,.76,.34);
+  box(g,.12,.035,.035,mat(0x299b70),0,.68,.34);
+ }else if(type==='timer'){
+  box(g,.88,.68,.72,mat(0xe2e9e8),0,.62,0,true);
+  box(g,.48,.22,.06,mat(0x263f4b),0,.73,.39);
+  const displayMat=mat(0x75b9a8);box(g,.34,.12,.035,displayMat,0,.73,.43);
+  for(let k=0;k<3;k++)box(g,.12,.08,.035,mat(0x607983),-.28+k*.28,.42,.4);
+ }else if(type==='contactor'){
+  box(g,.9,.82,.78,mat(0xdce3e1),0,.62,0,true);
+  box(g,.56,.34,.12,mat(0x354e59),0,.67,.44);
+  const coil=box(g,.28,.18,.08,mat(0x6f8d91),0,.43,.47);g.userData.coil=coil;
+ }else if(type==='heaterBreaker'){
+  box(g,.88,.76,.82,breakerMat,0,.62,0,true);
+  box(g,.38,.46,.18,blackMat,0,.66,.49);
+  const lever=box(g,.18,.3,.08,mat(0x71858c),0,.68,.60);g.userData.lever=lever;
+  const trip=box(g,.16,.12,.035,mat(0x299b70),.31,.83,.43);g.userData.trip=trip;
+ }else if(type==='heater'){
+  box(g,.94,.78,.78,mat(0xdce5e3),0,.62,0,true);
+  const tank=new THREE.Mesh(new THREE.CylinderGeometry(.32,.32,.5,24),mat(0xb9c9ca));tank.rotation.z=Math.PI/2;tank.position.set(0,.66,.43);g.add(tank);
+  const heatMat=new THREE.MeshStandardMaterial({color:0x6f7776,emissive:0x000000,roughness:.35});
+  const heat=new THREE.Mesh(new THREE.SphereGeometry(.17,20,16),heatMat);heat.position.set(0,.66,.72);g.add(heat);g.userData.bulbMat=heatMat;
+ }else{
+  const base=new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,.15,32),mat(0xe5e9e6));base.rotation.x=Math.PI/2;base.position.set(0,.57,.25);g.add(base);
+  const bulbMat=new THREE.MeshStandardMaterial({color:0x6f7776,emissive:0x000000,roughness:.25});const bulb=new THREE.Mesh(new THREE.SphereGeometry(.25,24,16),bulbMat);bulb.position.set(0,.59,.48);bulb.visible=true;g.add(bulb);g.userData.bulb=bulb;g.userData.bulbMat=bulbMat;
+ }
+ const positions=[[-.48,.28,.87],[.48,.28,.87],[-.48,.28,-.87],[.48,.28,-.87]];
+ positions.forEach((p,i)=>{const t=new THREE.Mesh(new THREE.SphereGeometry(.105,18,18),terminalMat);t.position.set(...p);let pinName='備用端子 '+(i+1);if(type==='breaker')pinName=['L 輸出','N 輸出','L 輸入','N 輸入'][i];if(type==='switch')pinName=['COM 公共端','L1 切換端','L2 切換端','備用端子 4'][i];if(type==='load')pinName=['燈具 L','燈具 N','備用端子 3','備用端子 4'][i];if(type==='outlet')pinName=['插座 L 火線','插座 N 中性線','插座 PE 接地','備用端子 4'][i];if(type==='ground')pinName=['PE 保護接地','備用端子 2','備用端子 3','備用端子 4'][i];if(type==='split')pinName=['L1 火線','L2 火線','N 中性線','PE 保護接地'][i];if(type==='timer')pinName=['COM 定時器電源輸入','NO 定時器控制輸出','N 控制中性線','備用端子 4'][i];if(type==='contactor')pinName=['A1 線圈控制端','A2 線圈回路端','主接點輸入概念端','主接點輸出概念端'][i];if(type==='heaterBreaker')pinName=['負載 L1 輸出','負載 L2 輸出','電源 L1 輸入','電源 L2 輸入'][i];if(type==='heater')pinName=['加熱器 L1','加熱器 L2','PE 保護接地','備用端子 4'][i];t.userData={terminal:true,label:label+'／'+pinName,device:label,terminalIndex:i,kind:type};g.add(t);terminalObjects.push(t);});
+ g.userData.label=label;return g;
+}
+const mainDevice=addDevice(-2.05,.05,'總開關 NFB','breaker');
+const branchDevice=addDevice(0,.05,'單切開關','switch');
+const loadDevice=addDevice(2.05,.05,'燈具 A','load');
+const secondLamp=addDevice(2.05,.05,'燈具 B','load');secondLamp.visible=false;
+function addNeutralBus(){
+ const g=new THREE.Group();board.add(g);g.position.set(0,.18,-1.05);
+ box(g,1.0,.18,.42,mat(0xd9e3e5),0,.12,0,true);
+ box(g,.76,.12,.22,mat(0x45616d),0,.27,0);
+ const specs=[[-.34,.28,0,'N 輸入'],[0,.28,0,'N 分路 A'],[.34,.28,0,'N 分路 B'],[.0,.28,-.14,'備用端子']];
+ specs.forEach((v,i)=>{const t=new THREE.Mesh(new THREE.SphereGeometry(.095,16,16),terminalMat);t.position.set(v[0],v[1],v[2]);t.userData={terminal:true,label:'中性線分配端子／'+v[3],device:'中性線分配端子',terminalIndex:i,kind:'bus'};g.add(t);terminalObjects.push(t);});
+ return g;
+}
+const neutralBus=addNeutralBus();neutralBus.visible=false;
+const outletDevice=addDevice(1.7,.05,'110V 插座','outlet');outletDevice.visible=false;
+const earthDevice=addDevice(-2.0,-1.05,'保護接地端子','ground');earthDevice.visible=false;
+const outletLoad=addDevice(3.55,.05,'插座負載','load');outletLoad.visible=false;
+const splitSource=addDevice(-2.35,.05,'單相三線電源','split');splitSource.visible=false;
+const load220=addDevice(2.35,.05,'220V 負載','load');load220.visible=false;
+const heaterBreaker=addDevice(0,.05,'熱水器雙極專用斷路器','heaterBreaker');heaterBreaker.visible=false;
+const heaterDevice=addDevice(2.45,.05,'熱水器','heater');heaterDevice.visible=false;
+const timerDevice=addDevice(-.75,.05,'定時器','timer');timerDevice.visible=false;
+const contactorDevice=addDevice(1.35,.05,'電磁接觸器','contactor');contactorDevice.visible=false;
+const secondSwitch=addDevice(1.0,-.85,'第二個雙切開關','switch');secondSwitch.visible=false;
+function textSprite(txt){const c=document.createElement('canvas');c.width=512;c.height=128;const ctx=c.getContext('2d');ctx.fillStyle='#294957';ctx.font='bold 42px sans-serif';ctx.textAlign='center';ctx.fillText(txt,256,78);const tex=new THREE.CanvasTexture(c);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));s.scale.set(1.5,.38,1);return s;}
+const sceneLabels=[];
+[[-2.05,'總開關 NFB'],[0,'單切開關'],[2.05,'燈具']].forEach(([x,t])=>{const s=textSprite(t);s.position.set(x,.88,-.98);board.add(s);sceneLabels.push(s);});
+const secondSwitchLabel=textSprite('第二個雙切開關');secondSwitchLabel.position.set(1,.88,-1.78);secondSwitchLabel.visible=false;board.add(secondSwitchLabel);
+const secondLampLabel=textSprite('燈具 B');secondLampLabel.position.set(2.05,.88,-1.2);secondLampLabel.visible=false;board.add(secondLampLabel);
+const neutralBusLabel=textSprite('中性線分配端子');neutralBusLabel.position.set(0,.72,-1.35);neutralBusLabel.visible=false;board.add(neutralBusLabel);
+const outletLabel=textSprite('110V 插座');outletLabel.position.set(1.7,.88,-.98);outletLabel.visible=false;board.add(outletLabel);
+const earthLabel=textSprite('PE 保護接地');earthLabel.position.set(-2,.88,-1.95);earthLabel.visible=false;board.add(earthLabel);
+const outletLoadLabel=textSprite('插座負載');outletLoadLabel.position.set(3.55,.88,-.98);outletLoadLabel.visible=false;board.add(outletLoadLabel);
+const splitSourceLabel=textSprite('單相三線電源');splitSourceLabel.position.set(-2.35,.88,-.98);splitSourceLabel.visible=false;board.add(splitSourceLabel);
+const load220Label=textSprite('220V 負載');load220Label.position.set(2.35,.88,-.98);load220Label.visible=false;board.add(load220Label);
+const heaterBreakerLabel=textSprite('雙極專用斷路器');heaterBreakerLabel.position.set(0,.88,-.98);heaterBreakerLabel.visible=false;board.add(heaterBreakerLabel);
+const heaterLabel=textSprite('熱水器 220V');heaterLabel.position.set(2.45,.88,-.98);heaterLabel.visible=false;board.add(heaterLabel);
+const back=box(bench,7.3,.14,.16,dark,0,1.05,-1.85);
+const selected=[],connections=[];let wireColor=0xd64f45,wireName='紅色導線 · 2.0 mm²',mode='wire',powered=false,switchOn=false,switch2On=false,socketLoadOn=false,heaterOn=false,timerOn=false,faultScenario='',faultTripped=false,diagnosisDone=false,topologyValid=false,activeLesson=1;
+function terminalWorld(t){return t.getWorldPosition(new THREE.Vector3());}
+function makeWire(a,b,color){const p1=terminalWorld(a),p2=terminalWorld(b);const mid1=p1.clone().add(new THREE.Vector3(0,.45,0)),mid2=p2.clone().add(new THREE.Vector3(0,.45,0));const curve=new THREE.CatmullRomCurve3([p1,mid1,mid2,p2]);const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,32,.035,8,false),mat(color,.38,.12));mesh.castShadow=true;scene.add(mesh);return mesh;}
+function clearWires(){connections.forEach(c=>scene.remove(c.mesh));connections.length=0;selected.length=0;terminalObjects.forEach(t=>t.material=terminalMat);topologyValid=false;updateCount();updateLamp();}
+function hasEdge(a,b){return connections.some(c=>(c.a===a&&c.b===b)||(c.a===b&&c.b===a));}
+function evaluateCircuit(){
+ const mainPins=mainDevice.children.filter(o=>o.userData.terminal),switchPins=branchDevice.children.filter(o=>o.userData.terminal),lampPins=loadDevice.children.filter(o=>o.userData.terminal);
+ let required=[];
+ if(activeLesson===1||activeLesson===8){
+  required=[[mainPins[0],switchPins[0]],[switchPins[1],lampPins[0]],[mainPins[1],lampPins[1]]];
+ }else if(activeLesson===2){
+  const s2=secondSwitch.children.filter(o=>o.userData.terminal);
+  required=[[mainPins[0],switchPins[0]],[switchPins[1],s2[1]],[switchPins[2],s2[2]],[s2[0],lampPins[0]],[mainPins[1],lampPins[1]]];
+ }else if(activeLesson===3){
+  const lamp2=secondLamp.children.filter(o=>o.userData.terminal),bus=neutralBus.children.filter(o=>o.userData.terminal);
+  required=[[mainPins[0],switchPins[0]],[switchPins[1],lampPins[0]],[switchPins[2],lamp2[0]],[mainPins[1],bus[0]],[bus[1],lampPins[1]],[bus[2],lamp2[1]]];
+ }else if(activeLesson===4){
+  const source=splitSource.children.filter(o=>o.userData.terminal),load=load220.children.filter(o=>o.userData.terminal);
+  required=[[source[0],load[0]],[source[1],load[1]]];
+ }else if(activeLesson===7){
+  const timer=timerDevice.children.filter(o=>o.userData.terminal),cont=contactorDevice.children.filter(o=>o.userData.terminal);
+  required=[[mainPins[0],timer[0]],[timer[1],cont[0]],[mainPins[1],cont[1]]];
+ }else if(activeLesson===6){
+  const source=splitSource.children.filter(o=>o.userData.terminal),br=heaterBreaker.children.filter(o=>o.userData.terminal),heat=heaterDevice.children.filter(o=>o.userData.terminal);
+  required=[[source[0],br[2]],[source[1],br[3]],[br[0],heat[0]],[br[1],heat[1]],[source[3],heat[2]]];
+ }else{
+  const outletPins=outletDevice.children.filter(o=>o.userData.terminal),earthPins=earthDevice.children.filter(o=>o.userData.terminal);
+  required=[[mainPins[0],outletPins[0]],[mainPins[1],outletPins[1]],[earthPins[0],outletPins[2]]];
+ }
+ const requiredOk=required.every(([a,b])=>hasEdge(a,b));
+ const degrees=new Map(terminalObjects.map(t=>[t,0]));
+ connections.forEach(c=>{degrees.set(c.a,(degrees.get(c.a)||0)+1);degrees.set(c.b,(degrees.get(c.b)||0)+1);});
+ const noExtra=connections.length===required.length && terminalObjects.every(t=>{
+  const expected=required.some(([a,b])=>(a===t||b===t));
+  return expected ? degrees.get(t)===1 : degrees.get(t)===0;
+ });
+ topologyValid=requiredOk&&noExtra;
+ return topologyValid;
+}
+function isLampOn(){return activeLesson===2?(switchOn===switch2On):switchOn;}
+function updateReadout(){
+ const lit=powered&&topologyValid&&isLampOn();
+ const socketReady=activeLesson===4&&powered&&topologyValid;
+ const splitReady=activeLesson===5&&powered&&topologyValid;
+ const heaterReady=activeLesson===6&&powered&&topologyValid;
+ const timerReady=activeLesson===7&&powered&&topologyValid;
+ const faultReady=activeLesson===8&&powered&&topologyValid&&switchOn;
+ const voltage=activeLesson===8?(faultReady&&faultScenario!=='open'&&!faultTripped?110:0):((activeLesson===5||activeLesson===6)?((activeLesson===5?splitReady:heaterReady)?220:0):(activeLesson===7?(timerReady?110:0):(activeLesson===4?(socketReady?110:0):(lit?110:0))));
+ const watts=activeLesson===8?(faultReady?(faultScenario==='normal'?60:(faultScenario==='overload'&&!faultTripped?2200:0)):0):(activeLesson===7?(timerReady&&timerOn?60:0):(activeLesson===6?(heaterReady&&heaterOn?3000:0):(activeLesson===5?(splitReady?1000:0):(activeLesson===4?(socketReady&&socketLoadOn?500:0):(lit?(activeLesson===3?120:60):0)))));
+ const amps=activeLesson===8&&faultReady&&faultScenario==='overload'?20:watts/((activeLesson===5||activeLesson===6)?220:110);
+ document.getElementById('readVoltage').textContent=voltage+' V';
+ document.getElementById('readCurrent').textContent=amps.toFixed(3)+' A'+(activeLesson===8&&faultReady&&faultScenario==='overload'?'（跳脫前估算）':'');
+ document.getElementById('readPower').textContent=watts+' W';
+ document.getElementById('readLamp').textContent=activeLesson===8?(faultReady?(faultScenario==='normal'?'點亮':(faultTripped?'保護跳脫':(faultScenario==='open'?'斷路／不亮':'異常'))):'待診斷'):(activeLesson===7?(timerReady?(timerOn?'接觸器吸合':'接觸器釋放'):'未供電'):(activeLesson===6?(heaterReady?(heaterOn?'加熱中':'待機'):'未供電'):(activeLesson===5?(splitReady?'負載運作':'未供電'):(activeLesson===4?(socketReady?(socketLoadOn?'負載運作':'插座待用'):'未供電'):(lit?'點亮':'熄滅')))));
+ document.getElementById('readoutMessage').textContent=activeLesson===8?(faultReady?(faultScenario==='open'?'開關已接通但負載無電壓；保護裝置未跳脫。':(faultScenario==='short'?'送電時偵測到短路，保護裝置立即跳脫。':(faultScenario==='overload'?'跳脫前估算電流約 20A（約 2200W），超過本模型 15A 教學門檻；跳脫後電壓與功率歸零。':'正常迴路，燈具運作中。'))):(!faultScenario?'請先抽取故障情境並完成接線、送電。':(!topologyValid?'接線尚未通過檢查':'請將控制開關切至 ON。'))):(!topologyValid?'接線尚未通過嚴格檢查':(!powered?'模擬電源關閉':(activeLesson===7?(timerOn?'定時器輸出 ON，接觸器線圈吸合':'定時器輸出 OFF，接觸器線圈失電'):(activeLesson===6?(heaterOn?'熱水器 3000W 教學負載運作中':'專用迴路已供電，熱水器待機'):(activeLesson===5?'L1 與 L2 之間為 220V；L1-N、L2-N 各為 110V':(activeLesson===4?(socketLoadOn?'插座已接入 500W 教學負載':'插座已供電，尚未接入負載'):(lit?'迴路閉合，燈具負載啟動':'迴路中斷，燈具熄滅')))))));
+}
+function updateLamp(){
+ const lit=powered&&topologyValid&&isLampOn();
+ [loadDevice,secondLamp,outletLoad,load220,heaterDevice].forEach((device,i)=>{if(device.userData.bulbMat){const lampLit=activeLesson===8?(powered&&topologyValid&&switchOn&&faultScenario==='normal'):(activeLesson===7?(powered&&topologyValid&&timerOn):(activeLesson===6?(powered&&topologyValid&&heaterOn):(activeLesson===5?(powered&&topologyValid):(activeLesson===4?(powered&&topologyValid&&socketLoadOn):(lit&&(activeLesson!==3||i<2))))));device.userData.bulbMat.emissive.setHex(lampLit?0xff8b38:0x000000);device.userData.bulbMat.color.setHex(lampLit?0xffd4a6:0x6f7776);}});
+ /* legacy lamp update */
+
+ if(branchDevice.userData.lever)branchDevice.userData.lever.rotation.z=switchOn?.22:-.22;
+ if(secondSwitch.userData.lever)secondSwitch.userData.lever.rotation.z=switch2On?.22:-.22;
+ document.getElementById('switchToggle').textContent=activeLesson===4?'插座負載模擬':('開關 A：'+(switchOn?'ON':'OFF'));
+ document.getElementById('switchToggle2').textContent='開關 B：'+(switch2On?'ON':'OFF');
+ updateReadout();
+}
+function updateCount(){document.getElementById('terminalCount').textContent=selected.length+' / 2';}
+function setStatus(s){document.getElementById('statusText').innerHTML=s;}
+function onTerminal(t){
+ if(mode==='inspect'){document.getElementById('guide').textContent='已選取：'+t.userData.label+'。正式教學內容會在這裡說明端子用途。';return;}
+ if(selected.includes(t)){selected.splice(selected.indexOf(t),1);t.material=terminalMat;updateCount();return;}
+ selected.push(t);t.material=mat(0xffc34e,.3);updateCount();
+ if(selected.length===2){
+  const [a,b]=selected;
+  const occupied=t=>connections.some(c=>c.a===t||c.b===t);
+  if(a===b||hasEdge(a,b)||occupied(a)||occupied(b)){
+   document.getElementById('guide').textContent='這個端子已經有連線，或選取了不允許的連接。每個端子在本課程只能接一條導線。';
+   setStatus('<strong>連線未建立</strong>　請更換端子後再試。');
+   selected.forEach(t=>t.material=terminalMat);selected.length=0;updateCount();return;
+  }
+  const mesh=makeWire(a,b,wireColor);connections.push({a,b,mesh,name:wireName});
+  const valid=evaluateCircuit();
+  document.getElementById('guide').textContent='已建立連線：'+a.userData.label+' ↔ '+b.userData.label+'。每個端子限接一條導線；完成本課程指定連線後才能啟動模擬。';
+  setStatus('<strong>已建立連線</strong>　'+wireName+(valid?'｜必要路徑完整':'｜目前 '+connections.length+' / '+(activeLesson===1?3:(activeLesson===2?5:(activeLesson===3?6:(activeLesson===4?3:(activeLesson===5?2:(activeLesson===7?3:5))))))+' 條必要連線'));
+  selected.forEach(t=>t.material=terminalMat);selected.length=0;updateCount();updateLamp();
+ }
+}
+const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let down=null,dragging=false,theta=Math.PI/4,phi=1.05,radius=11,target=new THREE.Vector3(0,.6,0);
+function updateCamera(){phi=Math.max(.28,Math.min(1.48,phi));camera.position.set(target.x+radius*Math.sin(phi)*Math.sin(theta),target.y+radius*Math.cos(phi),target.z+radius*Math.sin(phi)*Math.cos(theta));camera.lookAt(target);}
+updateCamera();
+let lastTouch=null;
+canvas.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY,id:e.pointerId};dragging=false;canvas.setPointerCapture(e.pointerId);});
+canvas.addEventListener('pointermove',e=>{if(!down)return;const dx=e.clientX-down.x,dy=e.clientY-down.y;if(Math.abs(dx)+Math.abs(dy)>3)dragging=true;if(dragging){theta-=dx*.008;phi+=dy*.006;updateCamera();down.x=e.clientX;down.y=e.clientY;}});
+canvas.addEventListener('pointerup',e=>{if(!down)return;if(!dragging){const r=canvas.getBoundingClientRect();pointer.x=((e.clientX-r.left)/r.width)*2-1;pointer.y=-((e.clientY-r.top)/r.height)*2+1;raycaster.setFromCamera(pointer,camera);const hits=raycaster.intersectObjects(terminalObjects,false);if(hits.length)onTerminal(hits[0].object);}down=null;});
+canvas.addEventListener('wheel',e=>{e.preventDefault();radius=Math.max(7,Math.min(17,radius+e.deltaY*.009));updateCamera();},{passive:false});
+function resize(){const w=sceneEl.clientWidth,h=sceneEl.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+new ResizeObserver(resize).observe(sceneEl);resize();
+function animate(){requestAnimationFrame(animate);renderer.render(scene,camera);}animate();
+document.getElementById('resetView').onclick=()=>{theta=Math.PI/4;phi=1.05;radius=11;target.set(0,.6,0);updateCamera();};
+document.getElementById('resetScene').onclick=()=>{clearWires();powered=false;switchOn=false;switch2On=false;socketLoadOn=false;heaterOn=false;timerOn=false;faultScenario='';faultTripped=false;diagnosisDone=false;document.getElementById('heaterToggle').textContent='熱水器：OFF';document.getElementById('timerToggle').textContent='定時器輸出：OFF';document.getElementById('faultSymptom').textContent='先抽取故障情境，再完成接線、模擬送電並觀察現象。';document.getElementById('faultDiagnosis').value='';document.getElementById('diagnosisResult').textContent='診斷結果會顯示在這裡。';
+ document.getElementById('timerToggle').style.display=activeLesson===7?'':'none';
+ document.getElementById('heaterToggle').style.display=activeLesson===6?'':'none';
+ document.getElementById('faultDraw').style.display=activeLesson===8?'':'none';
+ document.getElementById('faultLab').style.display=activeLesson===8?'':'none';document.getElementById('powerBtn').textContent='⏻ 模擬送電';document.getElementById('socketLoadToggle').textContent='插入負載：OFF';document.getElementById('socketLoadToggle').style.display=activeLesson===4?'':'none';updateLamp();setStatus('<strong>已重設</strong>　工作台連線已清除。');document.getElementById('guide').textContent='工作台已重設。拖曳旋轉、滾輪縮放，選擇材料後點擊兩個端子。';};
+document.querySelectorAll('.material').forEach(b=>b.onclick=()=>{document.querySelectorAll('.material').forEach(x=>x.classList.remove('active'));b.classList.add('active');wireColor=parseInt(b.dataset.color.replace('#',''),16);wireName=b.dataset.wire;document.getElementById('sceneHint').textContent='目前線材：'+wireName;setStatus('<strong>已選擇材料</strong>　'+wireName);});
+document.querySelectorAll('.lesson').forEach(b=>b.onclick=()=>{
+ const n=Number(b.querySelector('.num').textContent);
+ if(n>8){setStatus('<strong>課程不存在</strong>');return;}
+ activeLesson=n;
+ document.querySelectorAll('.lesson').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+ document.getElementById('lessonTitle').textContent=b.dataset.title;
+ document.getElementById('lessonDesc').textContent=b.dataset.sub;
+ document.getElementById('specLesson').textContent=b.querySelector('b').textContent;
+ const double=n===2,multi=n===3,socket=n===4,split=n===5,heater=n===6,timer=n===7,fault=n===8;
+ document.getElementById('guide').textContent=fault?'故障診斷練習：先抽取一種隱藏故障，再依單切燈具的三條基本連線完成接線。切換開關並模擬送電，觀察燈具、電壓、電流及保護裝置反應，最後選擇診斷。所有故障均為軟體情境，不會產生真實電氣危險。':(timer?'本課重點：定時器的 COM/NO 輸出控制接觸器線圈 A1/A2。完成三條控制迴路連線後送電，再切換定時器輸出觀察接觸器吸合／釋放。這是原理示範，不代表特定設備的實際端子接法。':(heater?'依電源 L1/L2 接入雙極專用斷路器，再連至熱水器；PE 保護接地另行連接。':document.getElementById('guide').textContent));
+ secondSwitch.visible=double;secondSwitchLabel.visible=double;
+ secondLamp.visible=multi;neutralBus.visible=multi;secondLampLabel.visible=multi;neutralBusLabel.visible=multi;
+ outletDevice.visible=socket;earthDevice.visible=socket;outletLoad.visible=socket;
+ outletLabel.visible=socket;earthLabel.visible=socket;outletLoadLabel.visible=socket;
+ splitSource.visible=split||heater;load220.visible=split;splitSourceLabel.visible=split||heater;load220Label.visible=split;
+ heaterBreaker.visible=heater;heaterDevice.visible=heater;heaterBreakerLabel.visible=heater;heaterLabel.visible=heater;
+ timerDevice.visible=timer;contactorDevice.visible=timer;timerLabel.visible=timer;contactorLabel.visible=timer;
+ document.getElementById('heaterToggle').style.display=heater?'':'none';
+ document.getElementById('timerToggle').style.display=timer?'':'none';
+ document.getElementById('faultDraw').style.display=activeLesson===8?'':'none';
+ document.getElementById('faultLab').style.display=activeLesson===8?'':'none';
+ document.getElementById('socketLoadToggle').style.display=socket?'':'none';document.getElementById('switchToggle').style.display=(socket||split||heater||timer)?'none':'';
+ if(timer){
+  mainDevice.position.set(-2.55,.18,.05);timerDevice.position.set(-.45,.18,.05);contactorDevice.position.set(1.75,.18,.05);
+  sceneLabels[0].position.set(-2.55,.88,-.98);timerLabel.position.set(-.45,.88,-.98);contactorLabel.position.set(1.75,.88,-.98);
+ }else if(heater){
+  splitSource.position.set(-2.65,.18,.05);heaterBreaker.position.set(-.15,.18,.05);heaterDevice.position.set(2.35,.18,.05);
+  splitSourceLabel.position.set(-2.65,.88,-.98);heaterBreakerLabel.position.set(-.15,.88,-.98);heaterLabel.position.set(2.35,.88,-.98);
+ }else if(split){
+  splitSource.position.set(-2.35,.18,.05);load220.position.set(2.35,.18,.05);
+  splitSourceLabel.position.set(-2.35,.88,-.98);load220Label.position.set(2.35,.88,-.98);
+ }else if(socket){
+  mainDevice.position.set(-2.45,.18,.15);outletDevice.position.set(.55,.18,.15);earthDevice.position.set(-2.25,.18,-1.12);outletLoad.position.set(2.85,.18,.15);
+  sceneLabels[0].position.set(-2.45,.88,-.65);sceneLabels[1].position.set(0,.88,-.65);sceneLabels[2].position.set(0,.88,-1.5);
+  outletLabel.position.set(.55,.88,-.72);earthLabel.position.set(-2.25,.88,-1.9);outletLoadLabel.position.set(2.85,.88,-.72);
+ }else if(multi){
+  mainDevice.position.set(-2.35,.18,.28);branchDevice.position.set(-.15,.18,.28);loadDevice.position.set(2.15,.18,-.55);secondLamp.position.set(2.15,.18,.72);neutralBus.position.set(-.15,.18,-1.05);
+  sceneLabels[0].position.set(-2.35,.88,-.65);sceneLabels[1].position.set(-.15,.88,-.65);sceneLabels[2].position.set(2.15,.88,-1.15);secondLampLabel.position.set(2.15,.88,.15);neutralBusLabel.position.set(-.15,.72,-1.35);
+ }else{
+  mainDevice.position.set(double?-2.55:-2.05,.18,.05);branchDevice.position.set(double?-.85:0,.18,.05);loadDevice.position.set(double?2.55:2.05,.18,.05);
+  sceneLabels[0].position.x=double?-2.55:-2.05;sceneLabels[1].position.x=double?-.85:0;sceneLabels[2].position.x=double?2.55:2.05;
+  secondSwitch.position.set(.85,.18,.05);secondSwitchLabel.position.set(.85,.88,-.98);
+ }
+ document.getElementById('switchToggle2').style.display=double?'':'none';
+ clearWires();powered=false;switchOn=false;switch2On=false;socketLoadOn=false;heaterOn=false;timerOn=false;faultScenario='';faultTripped=false;diagnosisDone=false;document.getElementById('faultSymptom').textContent='先抽取故障情境，再完成接線、模擬送電並觀察現象。';document.getElementById('faultDiagnosis').value='';document.getElementById('diagnosisResult').textContent='診斷結果會顯示在這裡。';document.getElementById('timerToggle').textContent='定時器輸出：OFF';document.getElementById('heaterToggle').textContent='熱水器：OFF';document.getElementById('powerBtn').textContent='⏻ 模擬送電';updateLamp();
+ document.getElementById('guide').textContent=fault?'故障診斷：先抽取故障、接好三條基本連線，再切換開關並模擬送電。根據異常現象選擇斷路、短路或過載。':(timer?'定時器控制接觸器：NFB L → 定時器 COM；定時器 NO → 接觸器線圈 A1；NFB N → 線圈 A2。此課程聚焦控制迴路與線圈吸合原理，主接點僅作概念展示，不作為實際配線圖。':(heater?'熱水器專用迴路：L1、L2 分別進入雙極專用斷路器，再由斷路器輸出接熱水器兩端；PE 保護接地獨立連接設備外殼。完成五條連線後檢查，再模擬送電與加熱。教學負載假設 220V、3000W。':(split?'單相三線式教學模型：電源 L1、L2 為兩條火線，兩者之間 220V；各自對中性線 N 為 110V。練習將 L1、L2 分別接到 220V 負載兩端，完成兩條連線後檢查並模擬送電。':(socket?'110V 插座練習：NFB L 輸出接插座 L、NFB N 輸出接插座 N；獨立 PE 保護接地端子接插座 PE。完成三條連線後檢查，再啟動模擬電源；可切換插入負載觀察電流與功率。':(multi?'多燈並聯練習：NFB L → 開關 COM；開關 L1、L2 分別接燈具 A、B 的 L；NFB N → 中性線分配端子，再分別接兩盞燈的 N。':(double?'雙切接線：NFB L → A COM；A L1 → B L1；A L2 → B L2；B COM → 燈具 L；NFB N → 燈具 N。兩個開關位置相同時燈亮。':'單切接線：NFB L → 開關 COM → 開關 L1 → 燈具 L；NFB N → 燈具 N。'))))));
+ setStatus('<strong>已切換練習</strong>　'+b.querySelector('b').textContent);
+});
+document.getElementById('checkBtn').onclick=()=>{const ok=evaluateCircuit();const requiredCount={1:3,2:5,3:6,4:3,5:2,6:5,7:3,8:3}[activeLesson];if(!ok){powered=false;document.getElementById('powerBtn').textContent='⏻ 模擬送電';}const messages={1:'單切課程需三條連線：NFB L → 開關 COM、開關 L1 → 燈具 L、NFB N → 燈具 N。',2:'雙切課程需五條連線：NFB L → A COM、A L1 → B L1、A L2 → B L2、B COM → 燈具 L、NFB N → 燈具 N。',3:'多燈課程需六條連線：NFB L → 開關 COM；開關 L1、L2 分別接兩盞燈 L；NFB N → 中性線分配端子，再分別接兩盞燈 N。',4:'插座課程需三條連線：NFB L → 插座 L、NFB N → 插座 N、PE 保護接地端子 → 插座 PE。',5:'220V 課程需兩條連線：電源 L1、L2 分別接 220V 負載兩端。',6:'熱水器課程需五條連線：電源 L1、L2 → 雙極斷路器輸入；斷路器輸出 L1、L2 → 熱水器；PE → 熱水器接地端。',7:'定時器課程需三條連線：NFB L → 定時器 COM；定時器 NO → 接觸器 A1；NFB N → 接觸器 A2。',8:'故障診斷課程需三條基本連線：NFB L → 開關 COM；開關 L1 → 燈具 L；NFB N → 燈具 N。'};document.getElementById('guide').textContent=ok?'接線檢查通過：必要連線完整，沒有多接、重複或端子佔用錯誤。可以啟動模擬電源。':messages[activeLesson];setStatus(ok?'<strong>電路檢查通過</strong>　'+requiredCount+' 條必要連線正確。':'<strong>電路檢查未通過</strong>　目前 '+connections.length+' 條連線；本課程要求 '+requiredCount+' 條且端子不得重複使用。');updateLamp();};
+document.getElementById('powerBtn').onclick=()=>{if(activeLesson===8&&!faultScenario){setStatus('<strong>尚未抽取故障</strong>　請先點擊「抽取故障情境」。');return;}if(!powered&&!evaluateCircuit()){setStatus('<strong>禁止模擬送電</strong>　接線檢查未通過，請先完成必要路徑。');document.getElementById('guide').textContent='安全鎖定：未完成正確接線前，模擬電源不會啟動。';return;}powered=!powered;if(activeLesson===8&&powered&&switchOn&&(faultScenario==='short'||faultScenario==='overload'))faultTripped=true;document.getElementById('powerBtn').textContent=powered?'⏻ 關閉模擬':'⏻ 模擬送電';updateLamp();if(activeLesson===8)document.getElementById('faultSymptom').textContent=document.getElementById('readoutMessage').textContent;setStatus(powered?'<strong>模擬電源已啟動</strong>　'+(activeLesson===8?document.getElementById('readoutMessage').textContent:(switchOn?'迴路閉合，燈具亮起。':'開關 OFF，燈具未亮。')):'<strong>已關閉模擬電源</strong>');document.getElementById('guide').textContent=activeLesson===8?document.getElementById('readoutMessage').textContent:(powered?(switchOn?'電路完整且開關 ON，燈具亮起。':'電源已啟動；開關目前 OFF，燈具不亮。'):'模擬電源已關閉。');};
+document.getElementById('switchToggle').onclick=()=>{switchOn=!switchOn;updateLamp();if(activeLesson===8){if(powered&&switchOn&&(faultScenario==='short'||faultScenario==='overload'))faultTripped=true;document.getElementById('faultSymptom').textContent=powered?document.getElementById('readoutMessage').textContent:(switchOn?'開關已切至 ON。啟動模擬電源後觀察燈具、電壓及保護狀態。':'開關目前 OFF，切至 ON 後才能觀察故障反應。');setStatus('<strong>故障診斷開關已切換</strong>　'+(switchOn?'ON':'OFF')+'。請觀察模擬狀態。');return;}if(powered&&topologyValid){setStatus(switchOn?'<strong>開關 ON</strong>　迴路閉合，燈具亮起。':'<strong>開關 OFF</strong>　迴路中斷，燈具熄滅。');document.getElementById('guide').textContent=switchOn?'開關接通後，模擬電流路徑成立，燈具亮起。':'開關切斷後，迴路中斷，燈具熄滅。';}else{setStatus('<strong>開關已切換</strong>　'+(switchOn?'ON':'OFF')+'；需完成接線檢查並啟動模擬電源才會顯示燈具狀態。');}};
+document.getElementById('switchToggle2').onclick=()=>{switch2On=!switch2On;updateLamp();setStatus('<strong>開關 B 已切換</strong>　'+(switch2On?'ON':'OFF')+(powered&&topologyValid?(isLampOn()?'｜燈具點亮':'｜燈具熄滅'):'｜完成接線檢查並模擬送電後觀察燈具'));};
+document.getElementById('socketLoadToggle').onclick=()=>{socketLoadOn=!socketLoadOn;document.getElementById('socketLoadToggle').textContent='插入負載：'+(socketLoadOn?'ON':'OFF');updateLamp();setStatus('<strong>插座負載已'+(socketLoadOn?'接入':'移除')+'</strong>　'+(powered&&topologyValid?(socketLoadOn?'教學負載 500W，約 4.545A。':'插座仍有 110V，負載電流為 0A。'):'需先完成接線檢查並啟動模擬電源。'));};
+document.getElementById('heaterToggle').onclick=()=>{heaterOn=!heaterOn;document.getElementById('heaterToggle').textContent='熱水器：'+(heaterOn?'ON':'OFF');updateLamp();setStatus('<strong>熱水器已'+(heaterOn?'啟動':'停止')+'</strong>　'+(powered&&topologyValid?(heaterOn?'模擬加熱負載 3000W，約 13.64A。':'加熱負載已停止。'):'需先完成專用迴路接線檢查並模擬送電。'));};
+document.getElementById('timerToggle').onclick=()=>{timerOn=!timerOn;document.getElementById('timerToggle').textContent='定時器輸出：'+(timerOn?'ON':'OFF');if(contactorDevice.userData.coil)contactorDevice.userData.coil.material.color.setHex(timerOn?0x42b88b:0x6f8d91);updateLamp();setStatus('<strong>定時器輸出已'+(timerOn?'啟動':'關閉')+'</strong>　'+(powered&&topologyValid?(timerOn?'控制線圈得電，接觸器吸合。':'控制線圈失電，接觸器釋放。'):'需先完成控制迴路接線並模擬送電。'));};
+document.getElementById('faultDraw').onclick=()=>{const cases=['open','short','overload'];faultScenario=cases[Math.floor(Math.random()*cases.length)];faultTripped=false;diagnosisDone=false;powered=false;switchOn=false;document.getElementById('powerBtn').textContent='⏻ 模擬送電';document.getElementById('faultDiagnosis').value='';document.getElementById('diagnosisResult').textContent='故障已隱藏，請依模擬現象判斷。';document.getElementById('faultSymptom').textContent='故障情境已設定。請完成三條接線，將開關切至 ON 並模擬送電，觀察狀態面板。';updateLamp();setStatus('<strong>已抽取故障情境</strong>　故障類型已隱藏，請開始診斷。');};
+document.getElementById('diagnoseBtn').onclick=()=>{if(!faultScenario){document.getElementById('diagnosisResult').textContent='請先抽取故障情境。';return;}if(!powered||!topologyValid||!switchOn){document.getElementById('diagnosisResult').textContent='請先完成接線檢查、切換開關並模擬送電，再提交診斷。';return;}const answer=document.getElementById('faultDiagnosis').value;if(!answer){document.getElementById('diagnosisResult').textContent='請先選擇你的診斷。';return;}const labels={open:'斷路',short:'短路',overload:'過載'};const explanations={open:'斷路代表導電路徑在某處中斷。常見現象是負載不動作，但保護裝置不一定跳脫。',short:'短路是非預期低阻抗路徑，可能造成極大故障電流，保護裝置應迅速切斷。',overload:'過載是負載電流超過迴路或保護裝置可承受的範圍，可能造成過熱並使保護裝置跳脫。'};const correct=answer===faultScenario;document.getElementById('diagnosisResult').textContent=(correct?'診斷正確！':'判斷不正確。')+' 正確答案：'+labels[faultScenario]+'。'+explanations[faultScenario]+'（此為簡化軟體模型，非現場檢修依據。）';diagnosisDone=true;setStatus(correct?'<strong>故障診斷正確</strong>　已掌握本次故障現象。':'<strong>診斷完成</strong>　請閱讀正確答案與原因說明。');};
+document.getElementById('wireMode').onclick=()=>{mode='wire';document.getElementById('wireMode').classList.add('active');document.getElementById('inspectMode').classList.remove('active');document.getElementById('guide').textContent='接線模式：選擇線材，再點擊兩個圓形端子建立視覺連線。';};
+document.getElementById('inspectMode').onclick=()=>{mode='inspect';document.getElementById('inspectMode').classList.add('active');document.getElementById('wireMode').classList.remove('active');document.getElementById('guide').textContent='查看模式：點擊 3D 工作台上的端子，查看名稱與功能。';};
+})();
+</script>
+
+<script>
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch(err => {
+      console.warn("Service worker registration failed:", err);
+    });
+  });
+}
+</script>
+
+</body>
+</html>
